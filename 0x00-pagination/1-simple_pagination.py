@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
-"""1. Simple pagination.
-"""
+"""Implement simple pagination"""
 import csv
+import math
 from typing import List, Tuple
 
 
-def index_range(page: int, page_size: int) -> Tuple[int, int]:
-    """Retrieves the index range from a given page and page size.
+def index_range(page: int, page_size: int) -> Tuple:
+    """helper function
+    Args:
+        page (int): page index
+        page_size (int): _description_
+    Returns:
+        Tuple: containing start-index and end-index
     """
-    start_index = (page - 1) * page_size
-    end_index = start_index + page_size
-    return (start_index, end_index)
+    end_index = page * page_size
+    return ((end_index - page_size, end_index))
 
 
 class Server:
@@ -19,8 +23,6 @@ class Server:
     DATA_FILE = "Popular_Baby_Names.csv"
 
     def __init__(self):
-        """Initializes a new Server instance.
-        """
         self.__dataset = None
 
     def dataset(self) -> List[List]:
@@ -35,13 +37,21 @@ class Server:
         return self.__dataset
 
     def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
-        """Retrieves a page of data.
+        """get_page
+        Args:
+            page (int, optional): page. Defaults to 1.
+            page_size (int, optional): page_size. Defaults to 10.
+        Returns:
+            List[List]: list of items
         """
-        assert type(page) == int and type(page_size) == int
-        assert page > 0 and page_size > 0
-        start_index, end_index = index_range(page, page_size)
-        data = self.dataset()
-        if start_index > len(data):
-            return []
-        return data[start_index:end_index]
+        assert type(page) is int and page > 0
+        assert type(page_size) is int and page_size > 0
 
+        self.dataset()
+
+        if self.__dataset is None:
+            return []
+
+        idx_range = index_range(page, page_size)
+        data = self.__dataset[idx_range[0]:idx_range[1]]
+        return data
