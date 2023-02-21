@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
+"""3. Deletion-resilient hypermedia pagination
 """
-Deletion-resilient hypermedia pagination
-"""
-
 import csv
-import math
-from typing import List, Dict
+from typing import Dict, List
 
 
 class Server:
@@ -14,6 +11,8 @@ class Server:
     DATA_FILE = "Popular_Baby_Names.csv"
 
     def __init__(self):
+        """Initializes a new Server instance.
+        """
         self.__dataset = None
         self.__indexed_dataset = None
 
@@ -40,33 +39,27 @@ class Server:
         return self.__indexed_dataset
 
     def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict:
-        """The goal here is that if between two queries, certain rows are
-        removed from the dataset, the user does not miss items from
-        dataset when changing page.
-        Args:
-            index (int, optional): current start index of the return page.
-            Defaults to None.
-            page_size (int, optional): the current page size. Defaults to 10.
-        Returns:
-            Dict: dictionary containing the following key-value pairs
-            --> index, next_index, page_size, data
+        """Retrieves info about a page from a given index and with a
+        specified size.
         """
-        max_index = len(self.dataset())
-        assert type(index) is int and index < max_index
-        gap = 0
-
-        for idx in range(index, max_index):
-            if self.indexed_dataset().get(idx):
+        data = self.indexed_dataset()
+        assert index is not None and index >= 0 and index <= max(data.keys())
+        page_data = []
+        data_count = 0
+        next_index = None
+        start_index = index if index else 0
+        for i, item in data.items():
+            if i >= start_index and data_count < page_size:
+                page_data.append(item)
+                data_count += 1
+                continue
+            if data_count == page_size:
+                next_index = i
                 break
-            gap += 1
-
-        next_index = idx + page_size
-        data = self.dataset()[idx:next_index]
-
-        return {
+        page_info = {
             'index': index,
-            'data': data,
-            'page_size': page_size,
-            'next_index': next_index
+            'next_index': next_index,
+            'page_size': len(page_data),
+            'data': page_data,
         }
-
+        return page_info
